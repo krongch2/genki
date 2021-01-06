@@ -1,9 +1,12 @@
 import os
 import random
 import re
+import yaml
 
 import pydub
 import pydub.playback
+
+print_template = '-'*10
 
 p035 = [
     ['おはよう', 'good morning', 'book_1/K00-G.mp3', '00:03.9', '00:04.8'],
@@ -27,12 +30,12 @@ p035 = [
 p038 = [
     ['いま　なんじですか。', 'What time is it now?', 'book_1/K01-02.mp3', '00:06.0', '00:07.7'],
     ['じゅうにじはんです。', "It's half past twelve.", 'book_1/K01-02.mp3', '00:10.5', '00:11.8'],
-    ['ありがとう　ございます。', 'Thank you.', 'book_1/K01-02.mp3', '00:13.8', '00:15.3']
+    ['ありがとうございます。', 'Thank you.', 'book_1/K01-02.mp3', '00:13.8', '00:15.3']
 ]
 
 p039 = [
     ['りゅうがくせいですか。', 'Are you an international student?', 'book_1/K01-03.mp3', '00:02.5', '00:03.9'],
-    ['アリゾナだいがくの　がくせいです。', 'I am a student at the University of Arizona.', 'book_1/K01-03.mp3', '00:06.2', '00:08.8'],
+    ['アリゾナだいがくのがくせいです。', 'I am a student at the University of Arizona.', 'book_1/K01-03.mp3', '00:06.2', '00:08.8'],
     ['そうですか。', 'I see.', 'book_1/K01-03.mp3', '00:09.1', '00:10.5'],
     ['せんこうは　なんですか。', 'What is your major?', 'book_1/K01-03.mp3', '00:10.5', '00:12.3'],
     ['いま　にねんせいです。', 'I am a sophomore now.', 'book_1/K01-03.mp3', '00:14.6', '00:16.9']
@@ -42,13 +45,13 @@ p040 = [
     ['あの', 'um', 'book_1/K01-05.mp3', '00:05.4', '00:06.6'],
     ['いま', 'now', 'book_1/K01-05.mp3', '00:09.5', '00:10.3'],
     ['えいご', 'English (language)', 'book_1/K01-05.mp3', '00:12.7', '00:13.7'],
-    ['ええ', 'yes', 'book_1/K01-05.mp3', '00:16.3', '00:17.1'],
+    # ['ええ', 'yes', 'book_1/K01-05.mp3', '00:16.3', '00:17.1'],
     ['がくせい', 'student', 'book_1/K01-05.mp3', '00:19.6', '00:20.8'],
     ['にほんご', 'Japanese (language)', 'book_1/K01-05.mp3', '00:26.8', '00:27.8'],
     ['こうこう', 'high school', 'book_1/K01-05.mp3', '00:31.0', '00:32.2'],
     ['ごご', 'P.M.', 'book_1/K01-05.mp3', '00:34.5', '00:35.7'],
     ['ごぜん', 'A.M.', 'book_1/K01-05.mp3', '00:38.1', '00:38.8'],
-    ['。。。さい', '... years old', 'book_1/K01-05.mp3', '00:41.2', '00:42.2'],
+    # ['。。。さい', '... years old', 'book_1/K01-05.mp3', '00:41.2', '00:42.2'],
     ['いちじ', "one o'clock", 'book_1/K01-05.mp3', '00:52.1', '00:53.1'],
     ['にほんじん', 'Japanese people', 'book_1/K01-05.mp3', '00:59.1', '01:00.2'],
     ['せんこう', 'major', 'book_1/K01-05.mp3', '01:02.8', '01:04.1'],
@@ -61,7 +64,7 @@ p040 = [
     ['なに', 'what', 'book_1/K01-05.mp3', '01:33.6', '01:34.6'],
     ['にほん', 'Japan', 'book_1/K01-05.mp3', '01:37.6', '01:38.4'],
     ['いちねんせい', 'first-year student', 'book_1/K01-05.mp3', '01:44.8', '01:46.2'],
-    ['はい', 'yes', 'book_1/K01-05.mp3', '01:49.7', '01:50.2'],
+    # ['はい', 'yes', 'book_1/K01-05.mp3', '01:49.5', '01:50.2'],
     ['はん', 'half', 'book_1/K01-05.mp3', '01:53.0', '01:53.8'],
     ['にじはん', 'half past two', 'book_1/K01-05.mp3', '01:56.2', '01:57.5'],
     ['ばんごう', 'number', 'book_1/K01-05.mp3', '02:01.0', '02:02.5'],
@@ -69,35 +72,36 @@ p040 = [
     ['わたし', 'I', 'book_1/K01-05.mp3', '02:10.3', '02:11.2']
 ]
 
-p041 = {
-    'アメリカ': 'America',
-    'イギリス': 'English',
-    'かんこく': 'Korea',
-    'ちゅうごく': 'China',
-    'かがく': 'science',
-    'けいざい': 'economics',
-    'コンピューター': 'computer',
-    'せいじ': 'politics',
-    'ビジネス': 'business',
-    'ぶんがく': 'literature',
-    'れきし': 'history',
-    'しごと': 'job',
-    'いしゃ': 'doctor',
-    'かいしゃいん': 'office worker',
-    'こうこうせい': 'high school student',
-    'しゅふ': 'housewife',
-    'だいがくいんせい': 'graduate student',
-    'だいがくせい': 'college student',
-    'べんごし': 'lawyer',
-    'おかあさん': 'mother',
-    'おとうさん': 'father',
-    'おねえさん': 'older sister',
-    'おにいさん': 'older brother',
-    'いもうと': 'younger sister',
-    'おとうと': 'younger brother',
-}
+p041 = [
+    ['アメリカ', 'America', 'book_1/K01-06.mp3', '00:04.1', '00:05.4'],
+    ['イギリス', 'English', 'book_1/K01-06.mp3', '00:08.4', '00:09.4']
+]
 
-l = p035 + p038 + p039 + p040
+
+    #
+    # 'かんこく': 'Korea',
+    # 'ちゅうごく': 'China',
+    # 'かがく': 'science',
+    # 'けいざい': 'economics',
+    # 'コンピューター': 'computer',
+    # 'せいじ': 'politics',
+    # 'ビジネス': 'business',
+    # 'ぶんがく': 'literature',
+    # 'れきし': 'history',
+    # 'しごと': 'job',
+    # 'いしゃ': 'doctor',
+    # 'かいしゃいん': 'office worker',
+    # 'こうこうせい': 'high school student',
+    # 'しゅふ': 'housewife',
+    # 'だいがくいんせい': 'graduate student',
+    # 'だいがくせい': 'college student',
+    # 'べんごし': 'lawyer',
+    # 'おかあさん': 'mother',
+    # 'おとうさん': 'father',
+    # 'おねえさん': 'older sister',
+    # 'おにいさん': 'older brother',
+    # 'いもうと': 'younger sister',
+    # 'おとうと': 'younger brother',
 
 def position(position_str):
     '''
@@ -106,7 +110,7 @@ def position(position_str):
     m, s = position_str.split(':')
     return int(m)*60 + float(s)
 
-def review(n=100, form='en2jp'):
+def review(l, n=100, form='en2jp'):
     '''
     randomly pulls a card from a sample of `n` cards for reviews
     '''
@@ -120,26 +124,27 @@ def review(n=100, form='en2jp'):
                 question = d[0]
 
         print(question)
-        # play(d)
-        kb = input()
+        kb = input('> ')
 
         if form == 'en2jp':
-            if kb and kb == d[0]:
+            if kb and kb == d[0].replace('。', '').replace(' ', ''):
                 print('Correct!')
-                print('-'*10)
+                print(print_template)
+                play(d)
                 correct = True
+
             else:
                 print('Try again')
-                print('-'*10)
+                print(print_template)
                 correct = False
         elif form == 'jp2en':
             if kb and kb.lower() in d[1].lower():
                 print('Correct!')
-                print('-'*10)
+                print(print_template)
                 correct = True
             else:
-                print('Try again')
-                print('-'*10)
+                print('Try again.')
+                print(print_template)
                 correct = False
 
 def play(d):
@@ -166,5 +171,13 @@ def search(key):
             print(d)
             play(d)
 
-review()
-# search('せんこうは　なんですか。')
+l = p035 + p038 + p039 + p040
+l = p041
+# review(l)
+# search('number')
+def read(y):
+    with open(y, encoding='utf-8') as f:
+        raw = yaml.load(f, Loader=yaml.FullLoader)
+    print(raw)
+
+read('dict.yaml')
